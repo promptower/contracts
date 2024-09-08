@@ -18,6 +18,8 @@ import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
 struct Metadata {
+    string name;
+    string description;
     string gameType;
     bytes32 prompt;
     bytes32 secret;
@@ -140,6 +142,8 @@ contract Game is Minimal6551, Multicall, OwnableUpgradeable {
 
         /* metadata */
         metas[tokenId] = Metadata({
+            name: metadata.name,
+            description: metadata.description,
             gameType: metadata.gameType,
             prompt: metadata.prompt,
             secret: metadata.secret,
@@ -173,8 +177,10 @@ contract Game is Minimal6551, Multicall, OwnableUpgradeable {
                             string(
                                 abi.encodePacked(
                                     '{',
-                                    '"name": "', name(), ' #', tokenId.toString(), '", ',
-                                    '"description": "', 'Capture-the-Prompt Game.', '", ',
+                                    // '"name": "', name(), ' #', tokenId.toString(), '", ',
+                                    // '"description": "', 'Capture-the-Prompt Game.', '", ',
+                                    '"name": "', meta.name, '", ',
+                                    '"description": "', meta.description, '", ',
                                     // '"image": "', _baseURI(), tokenId.toString(), '.png', '", ',
                                     '"image": "', _baseURI(), tokenIdToCounter[tokenId].toString(), '", ', // TODO
                                     '"attributes": [',
@@ -277,5 +283,5 @@ contract Game is Minimal6551, Multicall, OwnableUpgradeable {
     }
 
     // TODO: temp functions
-    // function getNfts() external view returns () {}
+    // function getNfts(uint256 startNumber, uint256 endNumber) external view returns () {}
 }
