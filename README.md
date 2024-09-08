@@ -9,15 +9,15 @@ This project implements two kinds of NFTs:
 
 1. RootStock Testnet
 
-- Game: [0xBA237B9F83387396bD3a46616314a12D7834A94d](https://explorer.testnet.rootstock.io/0xBA237B9F83387396bD3a46616314a12D7834A94d)
-- USDC: [0x3FBA3ef10e452D1e8Cc6C0cf552A8A25b572Ec41](https://explorer.testnet.rootstock.io/0x3FBA3ef10e452D1e8Cc6C0cf552A8A25b572Ec41)
-- Verified: [0x82eAFEAD2860601fc3B836e7D60683A0F07dad53](https://explorer.testnet.rootstock.io/0x82eAFEAD2860601fc3B836e7D60683A0F07dad53)
+- Game: [0xBA237B9F83387396bD3a46616314a12D7834A94d](https://explorer.testnet.rootstock.io/address/0xBA237B9F83387396bD3a46616314a12D7834A94d)
+- USDC: [0x3FBA3ef10e452D1e8Cc6C0cf552A8A25b572Ec41](https://explorer.testnet.rootstock.io/address/0x3FBA3ef10e452D1e8Cc6C0cf552A8A25b572Ec41)
+- Verified: [0x82eAFEAD2860601fc3B836e7D60683A0F07dad53](https://explorer.testnet.rootstock.io/address/0x82eAFEAD2860601fc3B836e7D60683A0F07dad53)
 
 2. Morpy Testnet
 
-- Game: [0x324e4d9afbEe1b5cA0c0F37e7b771a18094B39A6](https://explorer-holesky.morphl2.io/0x324e4d9afbEe1b5cA0c0F37e7b771a18094B39A6)
-- USDC: [0xe745f43775B760958cd34ee83B3ab0c088F74630](https://explorer-holesky.morphl2.io/0xe745f43775B760958cd34ee83B3ab0c088F74630)
-- Verified: [0x90f2F4E97Eb6B62D9049D07C6f6877FD171a9a0F](https://explorer-holesky.morphl2.io/0x90f2F4E97Eb6B62D9049D07C6f6877FD171a9a0F)
+- Game: [0x324e4d9afbEe1b5cA0c0F37e7b771a18094B39A6](https://explorer-holesky.morphl2.io/address/0x324e4d9afbEe1b5cA0c0F37e7b771a18094B39A6)
+- USDC: [0xe745f43775B760958cd34ee83B3ab0c088F74630](https://explorer-holesky.morphl2.io/address/0xe745f43775B760958cd34ee83B3ab0c088F74630)
+- Verified: [0x90f2F4E97Eb6B62D9049D07C6f6877FD171a9a0F](https://explorer-holesky.morphl2.io/address/0x90f2F4E97Eb6B62D9049D07C6f6877FD171a9a0F)
 
 ## Minimal 6551 Contract
 
