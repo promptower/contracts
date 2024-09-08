@@ -3,7 +3,7 @@ pragma solidity ^0.8.24;
 
 // import "hardhat/console.sol";
 
-import {Wallet} from "./accounts/Wallet.sol";
+import {IWallet as Wallet} from "./interfaces/IWallet.sol";
 import {Minimal6551} from "./minimal6551/Minimal6551.sol";
 
 import "@openzeppelin/contracts/utils/Base64.sol";
