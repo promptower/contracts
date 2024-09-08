@@ -294,6 +294,7 @@ contract Game is Minimal6551, Multicall, OwnableUpgradeable {
     // use tokenURI instead
 
     struct NftData {
+        uint256 id;
         string name;
         string description;
         string gameType;
@@ -315,6 +316,7 @@ contract Game is Minimal6551, Multicall, OwnableUpgradeable {
             Metadata memory meta = metas[tokenId];
 
             NftData memory datum = NftData({
+                id: i,
                 name: meta.name,
                 description: meta.description,
                 gameType: meta.gameType,
@@ -343,5 +345,65 @@ contract Game is Minimal6551, Multicall, OwnableUpgradeable {
         )
     {
         return (totalSupply(), totalOngoing(), totalSolved(), totalVerified());
+    }
+
+    // portfolio
+    function getPortfolioMaker(
+        address user
+    ) external view returns (NftData[] memory data) {
+        uint256 balance = balanceOf(user);
+        data = new NftData[](balance);
+
+        for (uint256 index = 0; index < balance; ) {
+            uint256 tokenId = tokenOfOwnerByIndex(user, index);
+            uint256 i = tokenIdToCounter[tokenId];
+            Metadata memory meta = metas[tokenId];
+
+            NftData memory datum = NftData({
+                id: i,
+                name: meta.name,
+                description: meta.description,
+                gameType: meta.gameType,
+                imageUri: string(abi.encodePacked(_baseURI(), i.toString())),
+                startDate: meta.start,
+                endDate: meta.end,
+                awards: IERC20(awardToken).balanceOf(address(uint160(tokenId)))
+            });
+            data[index] = datum;
+
+            unchecked {
+                ++index;
+            }
+        }
+    }
+
+    function getPortfolioSolver(
+        address user
+    ) external view returns (NftData[] memory data) {
+        uint256[] memory solvedGamesTokenIds = solvedGames[user];
+        uint256 solvedGamesCount = solvedGamesTokenIds.length;
+        data = new NftData[](solvedGamesCount);
+
+        for (uint256 s = 0; s < solvedGamesCount; ) {
+            uint256 tokenId = solvedGamesTokenIds[s];
+            uint256 i = tokenIdToCounter[tokenId];
+            Metadata memory meta = metas[tokenId];
+
+            NftData memory datum = NftData({
+                id: i,
+                name: meta.name,
+                description: meta.description,
+                gameType: meta.gameType,
+                imageUri: string(abi.encodePacked(_baseURI(), i.toString())),
+                startDate: meta.start,
+                endDate: meta.end,
+                awards: IERC20(awardToken).balanceOf(address(uint160(tokenId)))
+            });
+            data[s] = datum;
+
+            unchecked {
+                ++s;
+            }
+        }
     }
 }
