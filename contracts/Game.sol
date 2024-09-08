@@ -10,6 +10,8 @@ import "@openzeppelin/contracts/utils/Base64.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/utils/Multicall.sol";
 import "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol";
+import {ECDSA} from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
+import {MessageHashUtils} from "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
@@ -27,15 +29,22 @@ struct Metadata {
 contract Game is Minimal6551, Multicall, OwnableUpgradeable {
     using Strings for uint256;
     using Strings for address;
+    using ECDSA for bytes32;
+    using MessageHashUtils for bytes32;
 
     address public awardToken;
     mapping(uint256 tokenId => Metadata) public metas;
 
-    // TODO: temporal storage
+    // TODO: temp storage
+    // enumerable bi-directional mapping
+    mapping(uint256 counter => uint256 tokenId) public counterToTokenId;
+    mapping(uint256 tokenId => uint256 counter) public tokenIdToCounter;
+    // total status
     uint256 private _totalSolved;
     uint256 private _totalVerified;
     // uint256 private _totalEnd; // _totalSolved + _totalVerified;
     // uint256 private _totalOngoing; // totalSupply - _totalEnd;
+    // per-solver status
     mapping(address solver => uint256[] tokenIds) public solvedGames;
     mapping(address solver => uint256 count) public solvedCounts;
     mapping(address solver => uint256 totalAwards) public solvedAwards;
@@ -106,6 +115,13 @@ contract Game is Minimal6551, Multicall, OwnableUpgradeable {
         Metadata memory metadata,
         uint256 awards
     ) external returns (uint256 tokenId) {
+        // temp storage
+        {
+            uint256 counter = totalSupply();
+            counterToTokenId[counter] = tokenId;
+            tokenIdToCounter[tokenId] = counter;
+        }
+
         /* mint */
         {
             address walletAddress = (address(createAccount(to)));
@@ -114,10 +130,14 @@ contract Game is Minimal6551, Multicall, OwnableUpgradeable {
 
             /* awards */
             if (awards != 0) {
-                IERC20(awardToken).transferFrom(msg.sender, walletAddress, awards);
+                IERC20(awardToken).transferFrom(
+                    msg.sender,
+                    walletAddress,
+                    awards
+                );
             }
         }
-        
+
         /* metadata */
         metas[tokenId] = Metadata({
             gameType: metadata.gameType,
@@ -156,7 +176,7 @@ contract Game is Minimal6551, Multicall, OwnableUpgradeable {
                                     '"name": "', name(), ' #', tokenId.toString(), '", ',
                                     '"description": "', 'Capture-the-Prompt Game.', '", ',
                                     // '"image": "', _baseURI(), tokenId.toString(), '.png', '", ',
-                                    '"image": "', _baseURI(), '", ', // TODO
+                                    '"image": "', _baseURI(), tokenIdToCounter[tokenId].toString(), '", ', // TODO
                                     '"attributes": [',
                                     '{"trait_type": "Type", "value": "', meta.gameType, '"},',
                                     '{"trait_type": "Prompt", "value": "', uint256(meta.prompt).toHexString(32), '"},',
@@ -173,11 +193,19 @@ contract Game is Minimal6551, Multicall, OwnableUpgradeable {
                 )
             );
     }
+
     // solhint-enable max-line-length
 
-    function solved(uint256 tokenId, address winner) external onlyOwner {
-        Metadata storage meta = metas[tokenId];
+    function solved(
+        uint256 tokenId,
+        address winner,
+        bytes memory signature
+    ) external onlyOwner {
+        bytes32 _hash = bytes32(tokenId).toEthSignedMessageHash();
+        address recoveredAddress = _hash.recover(signature);
+        require(recoveredAddress != winner, "Invalid signature.");
 
+        Metadata storage meta = metas[tokenId];
         require(uint256(meta.start) <= block.timestamp, "Not yet.");
         require(uint256(meta.end) >= block.timestamp, "Outdated.");
         require(meta.winner == address(0), "Already solved.");
@@ -247,4 +275,7 @@ contract Game is Minimal6551, Multicall, OwnableUpgradeable {
         Metadata storage meta = metas[tokenId];
         return (uint256(meta.end) < block.timestamp);
     }
+
+    // TODO: temp functions
+    // function getNfts() external view returns () {}
 }

@@ -97,53 +97,54 @@ async function main() {
         console.log("owner:", owner);
     }
 
-    // /* Case 1: Winner */
-    // {
-    //     const tokenId = (await gameContract.tokenOfOwnerByIndex(deployer, salt)).toString();
-    //     console.log("tokenId:", tokenId);
+    /* Case 1: Winner */
+    {
+        const tokenId = (await gameContract.tokenOfOwnerByIndex(deployer, salt)).toString();
+        console.log("tokenId:", tokenId);
 
-    //     const txSolved = await gameContract.solved(tokenId, "0x71BB92C4e6B6bb179cB99a6866f53C36550c3698");
-    //     await txSolved.wait();
-    //     console.log("solved:", txSolved.hash);
-    // }
-    // {
-    //     const tokenId = "0x" + (await gameContract.tokenOfOwnerByIndex(deployer, salt)).toString(16);
-    //     console.log("tokenId:", tokenId);
-
-    //     const wallet = await ethers.getContractAt("Wallet", tokenId);
-    //     const balance = await awardContract.balanceOf(await wallet.getAddress());
-    //     console.log("awards:", ethers.formatUnits(balance, 18));
-
-    //     const owner = await wallet.owner();
-    //     console.log("owner:", owner);
-    // }
-    // {
-    //     const tokenId = (await gameContract.tokenOfOwnerByIndex(deployer, salt)).toString();
-    //     console.log("tokenId:", tokenId);
-
-    //     const isSolved = await gameContract.isSolved(tokenId);
-    //     console.log("isSolved:", isSolved);
-    // }
-
-    /* Case 2: Badge */
+        const sig = await deployer.signMessage(tokenId);
+        const txSolved = await gameContract.solved(tokenId, "0x71BB92C4e6B6bb179cB99a6866f53C36550c3698", sig);
+        await txSolved.wait();
+        console.log("solved:", txSolved.hash);
+    }
     {
         const tokenId = "0x" + (await gameContract.tokenOfOwnerByIndex(deployer, salt)).toString(16);
         console.log("tokenId:", tokenId);
 
-        const txMint = await badgeContract.mint(tokenId);
-        await txMint.wait();
-        console.log("Badge mint:", txMint.hash);
+        const wallet = await ethers.getContractAt("Wallet", tokenId);
+        const balance = await awardContract.balanceOf(await wallet.getAddress());
+        console.log("awards:", ethers.formatUnits(balance, 18));
 
-        const owner = await badgeContract.ownerOf(((await badgeContract.totalSupply()) - 1n).toString());
+        const owner = await wallet.owner();
         console.log("owner:", owner);
     }
     {
         const tokenId = (await gameContract.tokenOfOwnerByIndex(deployer, salt)).toString();
         console.log("tokenId:", tokenId);
 
-        const hasBadge = await gameContract.hasBadge(tokenId, await badgeContract.getAddress());
-        console.log("hasBadge:", hasBadge);
+        const isSolved = await gameContract.isSolved(tokenId);
+        console.log("isSolved:", isSolved);
     }
+
+    // /* Case 2: Badge */
+    // {
+    //     const tokenId = "0x" + (await gameContract.tokenOfOwnerByIndex(deployer, salt)).toString(16);
+    //     console.log("tokenId:", tokenId);
+
+    //     const txMint = await badgeContract.mint(tokenId);
+    //     await txMint.wait();
+    //     console.log("Badge mint:", txMint.hash);
+
+    //     const owner = await badgeContract.ownerOf(((await badgeContract.totalSupply()) - 1n).toString());
+    //     console.log("owner:", owner);
+    // }
+    // {
+    //     const tokenId = (await gameContract.tokenOfOwnerByIndex(deployer, salt)).toString();
+    //     console.log("tokenId:", tokenId);
+
+    //     const hasBadge = await gameContract.hasBadge(tokenId, await badgeContract.getAddress());
+    //     console.log("hasBadge:", hasBadge);
+    // }
 }
 
 // Error handling for async/await
