@@ -8,6 +8,8 @@ import {Minimal6551} from "./minimal6551/Minimal6551.sol";
 
 import "@openzeppelin/contracts/utils/Base64.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
+import "@openzeppelin/contracts/utils/Multicall.sol";
+import "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol";
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
@@ -22,7 +24,7 @@ struct Metadata {
     address winner;
 }
 
-contract Game is Minimal6551, OwnableUpgradeable {
+contract Game is Minimal6551, Multicall, OwnableUpgradeable {
     using Strings for uint256;
     using Strings for address;
 
@@ -62,6 +64,33 @@ contract Game is Minimal6551, OwnableUpgradeable {
         address awardToken_
     ) internal onlyInitializing {
         awardToken = awardToken_;
+    }
+
+    function _msgSender()
+        internal
+        view
+        override(Context, ContextUpgradeable)
+        returns (address)
+    {
+        return msg.sender;
+    }
+
+    function _msgData()
+        internal
+        pure
+        override(Context, ContextUpgradeable)
+        returns (bytes calldata)
+    {
+        return msg.data;
+    }
+
+    function _contextSuffixLength()
+        internal
+        pure
+        override(Context, ContextUpgradeable)
+        returns (uint256)
+    {
+        return 0;
     }
 
     /* Functions */
