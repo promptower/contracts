@@ -63,6 +63,12 @@ async function main() {
             console.log("NFT mint:", txMint.hash);
         }
 
+        /* Status */
+        {
+            const status = await gameContract.gameStatus();
+            console.log("status:", status);
+        }
+
         /* Set Winners */
         {
             const tokenId = (await gameContract.tokenOfOwnerByIndex(deployer, i)).toString();
@@ -94,7 +100,12 @@ async function main() {
     }
 
     /* Get Top-k solvers */
-    console.log(await gameContract.getTopSolvers(3));
+    {
+        const result = await gameContract.getTopSolvers(3);
+        console.log("Solvers:", result[0]);
+        console.log("Counts:", result[1]);
+        console.log("Awards:", result[2]);
+    }
 }
 
 // Error handling for async/await

@@ -303,6 +303,7 @@ contract Game is Minimal6551, Multicall, OwnableUpgradeable {
         uint256 awards;
     }
 
+    // challenge (main)
     function getNfts(
         uint256 startNumber,
         uint256 endNumber
@@ -330,42 +331,17 @@ contract Game is Minimal6551, Multicall, OwnableUpgradeable {
         }
     }
 
-    function getTopSolvers(
-        uint256 topk
-    ) external view returns (address[] memory solvers) {
-        require(topk > 0 && topk <= solverList.length, "Invalid number.");
-
-        solvers = new address[](topk);
-
-        // Temporary array to store the indices of top solvers
-        uint256[] memory topSolverIndices = new uint256[](topk);
-        for (uint256 i = 0; i < topk; i++) {
-            topSolverIndices[i] = i;
-        }
-
-        // Iterate through the remaining solvers to find the top solvers
-        for (uint256 i = topk; i < solverList.length; i++) {
-            // Find the current minimum award in the top solver list
-            uint256 minIndex = 0;
-            uint256 minAward = solvedAwards[
-                solverList[topSolverIndices[minIndex]]
-            ];
-
-            for (uint256 j = 1; j < topk; j++) {
-                if (solvedAwards[solverList[topSolverIndices[j]]] < minAward) {
-                    minAward = solvedAwards[solverList[topSolverIndices[j]]];
-                    minIndex = j;
-                }
-            }
-
-            // If the current solver has more awards than the minimum in the top list, replace it
-            if (solvedAwards[solverList[i]] > minAward) {
-                topSolverIndices[minIndex] = i;
-            }
-        }
-
-        for (uint256 i = 0; i < topk; i++) {
-            solvers[i] = solverList[topSolverIndices[i]];
-        }
+    // leaderboard
+    function gameStatus()
+        external
+        view
+        returns (
+            uint256 totalChallanges,
+            uint256 ongoingChallanges,
+            uint256 solvedChallanges,
+            uint256 verifiedChallanges
+        )
+    {
+        return (totalSupply(), totalOngoing(), totalSolved(), totalVerified());
     }
 }
