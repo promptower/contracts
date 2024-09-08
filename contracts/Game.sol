@@ -14,6 +14,7 @@ import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
 struct Metadata {
+    string gameType;
     bytes32 prompt;
     bytes32 secret;
     uint128 start;
@@ -27,6 +28,15 @@ contract Game is Minimal6551, OwnableUpgradeable {
 
     address public awardToken;
     mapping(uint256 tokenId => Metadata) public metas;
+
+    // TODO: temporal storage
+    uint256 private _totalSolved;
+    uint256 private _totalVerified;
+    // uint256 private _totalEnd; // _totalSolved + _totalVerified;
+    // uint256 private _totalOngoing; // totalSupply - _totalEnd;
+    mapping(address solver => uint256[] tokenIds) public solvedGames;
+    mapping(address solver => uint256 count) public solvedCounts;
+    mapping(address solver => uint256 totalAwards) public solvedAwards;
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() Minimal6551() {
@@ -74,6 +84,7 @@ contract Game is Minimal6551, OwnableUpgradeable {
 
         /* metadata */
         metas[tokenId] = Metadata({
+            gameType: metadata.gameType,
             prompt: metadata.prompt,
             secret: metadata.secret,
             start: metadata.start,
@@ -110,8 +121,10 @@ contract Game is Minimal6551, OwnableUpgradeable {
                                     '{',
                                     '"name": "', name(), ' #', tokenId.toString(), '", ',
                                     '"description": "', 'Capture-the-Prompt Game.', '", ',
-                                    '"image": "', _baseURI(), tokenId.toString(), '.png', '", ',
+                                    // '"image": "', _baseURI(), tokenId.toString(), '.png', '", ',
+                                    '"image": "', _baseURI(), '", ', // TODO
                                     '"attributes": [',
+                                    '{"trait_type": "Type", "value": "', meta.gameType, '"},',
                                     '{"trait_type": "Prompt", "value": "', uint256(meta.prompt).toHexString(32), '"},',
                                     '{"trait_type": "Secret", "value": "', uint256(meta.secret).toHexString(32), '"},',
                                     '{"display_type": "date", "trait_type": "Start date", "value": "', uint256(meta.start).toString(), '"},',
@@ -137,8 +150,31 @@ contract Game is Minimal6551, OwnableUpgradeable {
         require(meta.winner == address(0), "Already solved.");
 
         meta.winner = winner;
+        _totalSolved += 1;
+        solvedGames[winner].push(tokenId);
+        solvedCounts[winner] += 1;
+        solvedAwards[winner] += IERC20(awardToken).balanceOf(
+            address(uint160(tokenId))
+        );
         Wallet(payable(address(uint160(tokenId)))).initialize(winner);
     }
+
+    function verified(uint256 tokenId, address nftAddress) external onlyOwner {
+        Metadata storage meta = metas[tokenId];
+
+        require(uint256(meta.start) <= block.timestamp, "Not yet.");
+        require(uint256(meta.end) >= block.timestamp, "Outdated.");
+        require(meta.winner == address(0), "Already solved.");
+        require(
+            IERC721(nftAddress).balanceOf(address(uint160(tokenId))) != 0,
+            "Have no badges."
+        );
+
+        meta.winner = address(type(uint160).max);
+        _totalVerified += 1;
+    }
+
+    /* View Functions */
 
     function isSolved(uint256 tokenId) external view returns (bool) {
         return metas[tokenId].winner != address(0);
@@ -149,5 +185,21 @@ contract Game is Minimal6551, OwnableUpgradeable {
         address nftAddress
     ) external view returns (bool) {
         return IERC721(nftAddress).balanceOf(address(uint160(tokenId))) != 0;
+    }
+
+    function totalSolved() public view returns (uint256) {
+        return _totalSolved;
+    }
+
+    function totalVerified() public view returns (uint256) {
+        return _totalVerified;
+    }
+
+    function totalEnd() public view returns (uint256) {
+        return _totalSolved + _totalVerified;
+    }
+
+    function totalOngoing() public view returns (uint256) {
+        return totalSupply() - totalEnd();
     }
 }

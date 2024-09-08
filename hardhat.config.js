@@ -28,6 +28,7 @@ module.exports = {
       chainId: 1111,
       chainId: 84532,
       // chainId: 8453,
+      allowUnlimitedContractSize: true,
     },
     localhost: {
       url: "http://127.0.0.1:8545",

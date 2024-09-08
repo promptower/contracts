@@ -48,6 +48,7 @@ async function main() {
     const _currentTime = (await ethers.provider.getBlock()).timestamp;
     const awards = ethers.parseUnits("10", 18);
     const metadata = {
+        gameType: "secret",
         prompt: ethers.encodeBytes32String("MyPrompt"),
         secret: ethers.encodeBytes32String("MySecret"),
         start: _currentTime, // Current timestamp (start)
