@@ -117,13 +117,6 @@ contract Game is Minimal6551, Multicall, OwnableUpgradeable {
         Metadata memory metadata,
         uint256 awards
     ) external returns (uint256 tokenId) {
-        // temp storage
-        {
-            uint256 counter = totalSupply();
-            counterToTokenId[counter] = tokenId;
-            tokenIdToCounter[tokenId] = counter;
-        }
-
         /* mint */
         {
             address walletAddress = (address(createAccount(to)));
@@ -138,6 +131,13 @@ contract Game is Minimal6551, Multicall, OwnableUpgradeable {
                     awards
                 );
             }
+        }
+
+        // temp storage
+        {
+            uint256 _counter = totalSupply() - 1;
+            counterToTokenId[_counter] = tokenId;
+            tokenIdToCounter[tokenId] = _counter;
         }
 
         /* metadata */
@@ -271,17 +271,55 @@ contract Game is Minimal6551, Multicall, OwnableUpgradeable {
     }
 
     function isOngoing(uint256 tokenId) public view returns (bool) {
-        Metadata storage meta = metas[tokenId];
+        Metadata memory meta = metas[tokenId];
         return
             (uint256(meta.start) <= block.timestamp) &&
             (uint256(meta.end) >= block.timestamp);
     }
 
     function isEnded(uint256 tokenId) public view returns (bool) {
-        Metadata storage meta = metas[tokenId];
+        Metadata memory meta = metas[tokenId];
         return (uint256(meta.end) < block.timestamp);
     }
 
-    // TODO: temp functions
-    // function getNfts(uint256 startNumber, uint256 endNumber) external view returns () {}
+    /* Frontend Function */
+    // TODO: temp functions for frontend
+    // use tokenURI instead
+
+    struct NftData {
+        string name;
+        string description;
+        string gameType;
+        string imageUri;
+        uint128 startDate;
+        uint128 endDate;
+        uint256 awards;
+    }
+
+    function getNfts(
+        uint256 startNumber,
+        uint256 endNumber
+    ) external view returns (NftData[] memory data) {
+        data = new NftData[](endNumber - startNumber);
+
+        for (uint256 i = startNumber; i < endNumber; ) {
+            uint256 tokenId = counterToTokenId[i];
+            Metadata memory meta = metas[tokenId];
+
+            NftData memory datum = NftData({
+                name: meta.name,
+                description: meta.description,
+                gameType: meta.gameType,
+                imageUri: string(abi.encodePacked(_baseURI(), i.toString())),
+                startDate: meta.start,
+                endDate: meta.end,
+                awards: IERC20(awardToken).balanceOf(address(uint160(tokenId)))
+            });
+            data[i - startNumber] = datum;
+
+            unchecked {
+                ++i;
+            }
+        }
+    }
 }
