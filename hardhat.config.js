@@ -21,12 +21,13 @@ module.exports = {
     hardhat: {
       forking: {
         enabled: true,
-        url: "https://api.wemix.com",
+        // url: "https://api.wemix.com",
+        url: 'https://public-node.testnet.rsk.co',
         // url: "https://84532.rpc.thirdweb.com",
         // url: 'https://base.llamarpc.com	',
       },
-      chainId: 1111,
-      chainId: 84532,
+      // chainId: 1111,
+      // chainId: 84532,
       // chainId: 8453,
       allowUnlimitedContractSize: true,
     },
@@ -54,6 +55,20 @@ module.exports = {
       url: 'https://84532.rpc.thirdweb.com',
       chainId: 84532,
       accounts: [process.env.PRIVATE_KEY],
+    },
+
+    // testnet
+    root: {
+      url: 'https://public-node.testnet.rsk.co',
+      chainId: 31,
+      accounts: [process.env.PRIVATE_KEY],
+      // https://explorer.testnet.rootstock.io/
+    },
+    morpy: {
+      url: 'https://rpc-quicknode-holesky.morphl2.io',
+      chainId: 2810,
+      accounts: [process.env.PRIVATE_KEY],
+      // https://explorer-holesky.morphl2.io/
     },
   },
 };
