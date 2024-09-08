@@ -159,7 +159,7 @@ contract Game is Minimal6551, Multicall, OwnableUpgradeable {
     /* Token URI */
 
     function _baseURI() internal pure override returns (string memory) {
-        return ""; // TODO
+        return "https://raw.githubusercontent.com/promptower/webapp/main/src/assets/nft/"; // TODO
     }
 
     // solhint-disable max-line-length
@@ -185,7 +185,7 @@ contract Game is Minimal6551, Multicall, OwnableUpgradeable {
                                     '"name": "', meta.name, '", ',
                                     '"description": "', meta.description, '", ',
                                     // '"image": "', _baseURI(), tokenId.toString(), '.png', '", ',
-                                    '"image": "', _baseURI(), tokenIdToCounter[tokenId].toString(), '", ', // TODO
+                                    '"image": "', _baseURI(), tokenIdToCounter[tokenId].toString(), '.png', '", ',
                                     '"attributes": [',
                                     '{"trait_type": "Type", "value": "', meta.gameType, '"},',
                                     '{"trait_type": "Prompt", "value": "', uint256(meta.prompt).toHexString(32), '"},',
@@ -302,6 +302,7 @@ contract Game is Minimal6551, Multicall, OwnableUpgradeable {
         uint128 startDate;
         uint128 endDate;
         uint256 awards;
+        address winner;
     }
 
     // challenge (main)
@@ -309,6 +310,11 @@ contract Game is Minimal6551, Multicall, OwnableUpgradeable {
         uint256 startNumber,
         uint256 endNumber
     ) external view returns (NftData[] memory data) {
+        {
+            uint256 limit = totalSupply();
+            if (endNumber > limit) endNumber = limit;
+        }
+
         data = new NftData[](endNumber - startNumber);
 
         for (uint256 i = startNumber; i < endNumber; ) {
@@ -320,10 +326,11 @@ contract Game is Minimal6551, Multicall, OwnableUpgradeable {
                 name: meta.name,
                 description: meta.description,
                 gameType: meta.gameType,
-                imageUri: string(abi.encodePacked(_baseURI(), i.toString())),
+                imageUri: string(abi.encodePacked(_baseURI(), i.toString(), '.png')),
                 startDate: meta.start,
                 endDate: meta.end,
-                awards: IERC20(awardToken).balanceOf(address(uint160(tokenId)))
+                awards: IERC20(awardToken).balanceOf(address(uint160(tokenId))),
+                winner: meta.winner
             });
             data[i - startNumber] = datum;
 
@@ -367,7 +374,8 @@ contract Game is Minimal6551, Multicall, OwnableUpgradeable {
                 imageUri: string(abi.encodePacked(_baseURI(), i.toString())),
                 startDate: meta.start,
                 endDate: meta.end,
-                awards: IERC20(awardToken).balanceOf(address(uint160(tokenId)))
+                awards: IERC20(awardToken).balanceOf(address(uint160(tokenId))),
+                winner: meta.winner
             });
             data[index] = datum;
 
@@ -397,7 +405,8 @@ contract Game is Minimal6551, Multicall, OwnableUpgradeable {
                 imageUri: string(abi.encodePacked(_baseURI(), i.toString())),
                 startDate: meta.start,
                 endDate: meta.end,
-                awards: IERC20(awardToken).balanceOf(address(uint160(tokenId)))
+                awards: IERC20(awardToken).balanceOf(address(uint160(tokenId))),
+                winner: meta.winner
             });
             data[s] = datum;
 
