@@ -12,4 +12,10 @@ contract Verified is ERC721("Verified Badge", "Verified"), Ownable {
     function mint(address to) external onlyOwner {
         _mint(to, totalSupply++);
     }
+
+    function transferFrom(
+        address from,
+        address to,
+        uint256 tokenId
+    ) public override {} // SBT
 }
