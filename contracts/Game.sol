@@ -93,7 +93,9 @@ contract Game is Minimal6551, OwnableUpgradeable {
         });
 
         /* awards */
-        IERC20(awardToken).transferFrom(msg.sender, walletAddress, awards);
+        if (awards != 0) {
+            IERC20(awardToken).transferFrom(msg.sender, walletAddress, awards);
+        }
     }
 
     /* Token URI */
@@ -176,14 +178,14 @@ contract Game is Minimal6551, OwnableUpgradeable {
 
     /* View Functions */
 
-    function isSolved(uint256 tokenId) external view returns (bool) {
+    function isSolved(uint256 tokenId) public view returns (bool) {
         return metas[tokenId].winner != address(0);
     }
 
     function hasBadge(
         uint256 tokenId,
         address nftAddress
-    ) external view returns (bool) {
+    ) public view returns (bool) {
         return IERC721(nftAddress).balanceOf(address(uint160(tokenId))) != 0;
     }
 
@@ -201,5 +203,17 @@ contract Game is Minimal6551, OwnableUpgradeable {
 
     function totalOngoing() public view returns (uint256) {
         return totalSupply() - totalEnd();
+    }
+
+    function isOngoing(uint256 tokenId) public view returns (bool) {
+        Metadata storage meta = metas[tokenId];
+        return
+            (uint256(meta.start) <= block.timestamp) &&
+            (uint256(meta.end) >= block.timestamp);
+    }
+
+    function isEnded(uint256 tokenId) public view returns (bool) {
+        Metadata storage meta = metas[tokenId];
+        return (uint256(meta.end) < block.timestamp);
     }
 }
