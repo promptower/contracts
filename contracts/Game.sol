@@ -107,10 +107,17 @@ contract Game is Minimal6551, Multicall, OwnableUpgradeable {
         uint256 awards
     ) external returns (uint256 tokenId) {
         /* mint */
-        address walletAddress = (address(createAccount(to)));
-        tokenId = uint256(uint160(walletAddress));
-        _mint(to, tokenId);
+        {
+            address walletAddress = (address(createAccount(to)));
+            tokenId = uint256(uint160(walletAddress));
+            _mint(to, tokenId);
 
+            /* awards */
+            if (awards != 0) {
+                IERC20(awardToken).transferFrom(msg.sender, walletAddress, awards);
+            }
+        }
+        
         /* metadata */
         metas[tokenId] = Metadata({
             gameType: metadata.gameType,
@@ -120,11 +127,6 @@ contract Game is Minimal6551, Multicall, OwnableUpgradeable {
             end: metadata.end,
             winner: address(0)
         });
-
-        /* awards */
-        if (awards != 0) {
-            IERC20(awardToken).transferFrom(msg.sender, walletAddress, awards);
-        }
     }
 
     /* Token URI */
@@ -141,6 +143,7 @@ contract Game is Minimal6551, Multicall, OwnableUpgradeable {
 
         Metadata memory meta = metas[tokenId];
 
+        // TODO: --via-ir
         return
             string(
                 abi.encodePacked(
@@ -170,7 +173,6 @@ contract Game is Minimal6551, Multicall, OwnableUpgradeable {
                 )
             );
     }
-
     // solhint-enable max-line-length
 
     function solved(uint256 tokenId, address winner) external onlyOwner {
