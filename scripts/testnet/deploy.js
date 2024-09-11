@@ -31,7 +31,7 @@ async function main() {
     console.log("Verified:", await badgeContract.getAddress());
 
     {
-        const txMint = await awardContract.mint(deployer.address, ethers.parseUnits("100", 18));
+        const txMint = await awardContract.mint(deployer.address, ethers.parseUnits("10000", 18));
         await txMint.wait();
         console.log("USDC mint:", txMint.hash);
 
@@ -47,6 +47,6 @@ main().catch((error) => {
     process.exitCode = 1;
 });
 
-// Game: 0x6f244f852f560Cd7Ae16454Adff2b2A5Cd408c5a
-// USDC: 0xe75C08A708b1c328e990e60Cb1bd081714c58Ed2
-// Verified: 0xC6B4dC567149757864Cbd40D42482F4e9db4f840
+// Game: 0xcf7EC4BB7c0226FAF75cc81308D6361936b065f6
+// USDC: 0x41Db4368f74A18240deDB94BCc80dbED1E238c7B
+// Verified: 0x9e378EC114B2C35305A166e99feC5C47013188ec
