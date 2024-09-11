@@ -43,35 +43,35 @@ contract Minimal6551 is ERC721EnumerableUpgradeable, WalletFactory {
 
     /* Token URI */
 
-    function _baseURI() internal pure virtual override returns (string memory) {
-        return ""; // TODO
-    }
+    // function _baseURI() internal pure virtual override returns (string memory) {
+    //     return ""; // TODO
+    // }
 
-    // solhint-disable max-line-length
-    function tokenURI(
-        uint256 tokenId
-    ) public view virtual override returns (string memory) {
-        _requireOwned(tokenId);
+    // // solhint-disable max-line-length
+    // function tokenURI(
+    //     uint256 tokenId
+    // ) public view virtual override returns (string memory) {
+    //     _requireOwned(tokenId);
 
-        return
-            string(
-                abi.encodePacked(
-                    "data:application/json;base64,",
-                    Base64.encode(
-                        bytes(
-                            string(
-                                abi.encodePacked(
-                                    "{",
-                                    '"name": "', name(), " #", tokenId.toString(), '", ',
-                                    '"description": "', "Minimal 6551 Implementation.", '", ', // TODO
-                                    '"image": "', _baseURI(), tokenId.toString(), '"',
-                                    "}"
-                                )
-                            )
-                        )
-                    )
-                )
-            );
-    }
-    // solhint-enable max-line-length
+    //     return
+    //         string(
+    //             abi.encodePacked(
+    //                 "data:application/json;base64,",
+    //                 Base64.encode(
+    //                     bytes(
+    //                         string(
+    //                             abi.encodePacked(
+    //                                 "{",
+    //                                 '"name": "', name(), " #", tokenId.toString(), '", ',
+    //                                 '"description": "', "Minimal 6551 Implementation.", '", ', // TODO
+    //                                 '"image": "', _baseURI(), tokenId.toString(), '"',
+    //                                 "}"
+    //                             )
+    //                         )
+    //                     )
+    //                 )
+    //             )
+    //         );
+    // }
+    // // solhint-enable max-line-length
 }

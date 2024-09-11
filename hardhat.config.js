@@ -10,9 +10,10 @@ module.exports = {
     settings: {
       optimizer: {
         enabled: true,
-        runs: 2 ** 32 - 1,
+        // runs: 2 ** 32 - 1,
+        runs: 200,
       },
-      viaIR: true,
+      // viaIR: true,
     },
   },
 
@@ -21,15 +22,15 @@ module.exports = {
     hardhat: {
       forking: {
         enabled: true,
-        // url: "https://api.wemix.com",
-        url: 'https://public-node.testnet.rsk.co',
+        url: "https://api.wemix.com",
+        // url: 'https://public-node.testnet.rsk.co',
         // url: "https://84532.rpc.thirdweb.com",
         // url: 'https://base.llamarpc.com	',
       },
-      // chainId: 1111,
+      chainId: 1111,
       // chainId: 84532,
       // chainId: 8453,
-      allowUnlimitedContractSize: true,
+      // allowUnlimitedContractSize: true,
     },
     localhost: {
       url: "http://127.0.0.1:8545",

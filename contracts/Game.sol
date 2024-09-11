@@ -3,6 +3,7 @@ pragma solidity ^0.8.24;
 
 // import "hardhat/console.sol";
 
+import {IGame, Metadata} from "./interfaces/IGame.sol";
 import {IWallet as Wallet} from "./interfaces/IWallet.sol";
 import {Minimal6551} from "./minimal6551/Minimal6551.sol";
 
@@ -17,25 +18,14 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
-struct Metadata {
-    string name;
-    string description;
-    string gameType;
-    bytes32 prompt;
-    bytes32 secret;
-    uint128 start;
-    uint128 end;
-    address winner;
-}
-
-contract Game is Minimal6551, Multicall, OwnableUpgradeable {
+contract Game is Minimal6551, Multicall, OwnableUpgradeable, IGame {
     using Strings for uint256;
     using Strings for address;
     using ECDSA for bytes32;
     using MessageHashUtils for bytes32;
 
     address public awardToken;
-    mapping(uint256 tokenId => Metadata) public metas;
+    mapping(uint256 tokenId => Metadata) private _metas;
 
     // TODO: temp storage
     // enumerable bi-directional mapping
@@ -144,7 +134,7 @@ contract Game is Minimal6551, Multicall, OwnableUpgradeable {
         }
 
         /* metadata */
-        metas[tokenId] = Metadata({
+        _metas[tokenId] = Metadata({
             name: metadata.name,
             description: metadata.description,
             gameType: metadata.gameType,
@@ -169,9 +159,33 @@ contract Game is Minimal6551, Multicall, OwnableUpgradeable {
     ) public view override returns (string memory) {
         _requireOwned(tokenId);
 
-        Metadata memory meta = metas[tokenId];
+        Metadata memory meta = _metas[tokenId];
 
-        // TODO: --via-ir
+        string memory attributes = string(
+            abi.encodePacked(
+                "[",
+                '{"trait_type": "Type", "value": "',
+                meta.gameType,
+                '"},',
+                // '{"trait_type": "Prompt", "value": "',
+                // uint256(meta.prompt).toHexString(32),
+                // '"},',
+                // '{"trait_type": "Secret", "value": "',
+                // uint256(meta.secret).toHexString(32),
+                // '"},',
+                '{"display_type": "date", "trait_type": "Start date", "value": "',
+                uint256(meta.start).toString(),
+                '"},',
+                '{"display_type": "date", "trait_type": "End date", "value": "',
+                uint256(meta.end).toString(),
+                '"},',
+                '{"trait_type": "Winner address", "value": "',
+                meta.winner.toHexString(),
+                '"}',
+                "]"
+            )
+        );
+
         return
             string(
                 abi.encodePacked(
@@ -180,22 +194,24 @@ contract Game is Minimal6551, Multicall, OwnableUpgradeable {
                         bytes(
                             string(
                                 abi.encodePacked(
-                                    '{',
+                                    "{",
                                     // '"name": "', name(), ' #', tokenId.toString(), '", ',
                                     // '"description": "', 'Capture-the-Prompt Game.', '", ',
-                                    '"name": "', meta.name, '", ',
-                                    '"description": "', meta.description, '", ',
+                                    '"name": "',
+                                    meta.name,
+                                    '", ',
+                                    '"description": "',
+                                    meta.description,
+                                    '", ',
                                     // '"image": "', _baseURI(), tokenId.toString(), '.png', '", ',
-                                    '"image": "', _baseURI(), tokenIdToCounter[tokenId].toString(), '.png', '", ',
-                                    '"attributes": [',
-                                    '{"trait_type": "Type", "value": "', meta.gameType, '"},',
-                                    '{"trait_type": "Prompt", "value": "', uint256(meta.prompt).toHexString(32), '"},',
-                                    '{"trait_type": "Secret", "value": "', uint256(meta.secret).toHexString(32), '"},',
-                                    '{"display_type": "date", "trait_type": "Start date", "value": "', uint256(meta.start).toString(), '"},',
-                                    '{"display_type": "date", "trait_type": "End date", "value": "', uint256(meta.end).toString(), '"},',
-                                    '{"trait_type": "Winner address", "value": "', meta.winner.toHexString(), '"}',
-                                    ']',
-                                    '}'
+                                    '"image": "',
+                                    _baseURI(),
+                                    tokenIdToCounter[tokenId].toString(),
+                                    ".png",
+                                    '", ',
+                                    '"attributes":',
+                                    attributes,
+                                    "}"
                                 )
                             )
                         )
@@ -217,7 +233,7 @@ contract Game is Minimal6551, Multicall, OwnableUpgradeable {
         // address recoveredAddress = _hash.recover(signature);
         // require(recoveredAddress == winner, "Invalid signature.");
 
-        Metadata storage meta = metas[tokenId];
+        Metadata storage meta = _metas[tokenId];
         require(uint256(meta.start) <= block.timestamp, "Not yet.");
         require(uint256(meta.end) >= block.timestamp, "Outdated.");
         require(meta.winner == address(0), "Already solved.");
@@ -238,7 +254,7 @@ contract Game is Minimal6551, Multicall, OwnableUpgradeable {
     }
 
     function verified(uint256 tokenId, address nftAddress) external onlyOwner {
-        Metadata storage meta = metas[tokenId];
+        Metadata storage meta = _metas[tokenId];
 
         require(uint256(meta.start) <= block.timestamp, "Not yet.");
         require(uint256(meta.end) >= block.timestamp, "Outdated.");
@@ -252,11 +268,27 @@ contract Game is Minimal6551, Multicall, OwnableUpgradeable {
         _totalVerified += 1;
     }
 
-    /* View Functions */
+    /* View Storages */
+
+    function metas(uint256 id) external view returns (Metadata memory) {
+        return _metas[id];
+    }
+
+    function solverListLength() external view returns (uint256) {
+        return solverList.length;
+    }
+
+    function solvedGamesTokenIds(
+        address user
+    ) external view returns (uint256[] memory) {
+        return solvedGames[user];
+    }
 
     function isSolved(uint256 tokenId) public view returns (bool) {
-        return metas[tokenId].winner != address(0);
+        return _metas[tokenId].winner != address(0);
     }
+
+    /* View Functions */
 
     function hasBadge(
         uint256 tokenId,
@@ -282,202 +314,14 @@ contract Game is Minimal6551, Multicall, OwnableUpgradeable {
     }
 
     function isOngoing(uint256 tokenId) public view returns (bool) {
-        Metadata memory meta = metas[tokenId];
+        Metadata memory meta = _metas[tokenId];
         return
             (uint256(meta.start) <= block.timestamp) &&
             (uint256(meta.end) >= block.timestamp);
     }
 
     function isEnded(uint256 tokenId) public view returns (bool) {
-        Metadata memory meta = metas[tokenId];
+        Metadata memory meta = _metas[tokenId];
         return (uint256(meta.end) < block.timestamp);
-    }
-
-    /* Frontend Function */
-    // TODO: temp functions for frontend
-    // use tokenURI instead
-
-    struct NftData {
-        uint256 id;
-        string name;
-        string description;
-        string gameType;
-        string imageUri;
-        uint128 startDate;
-        uint128 endDate;
-        uint256 awards;
-        address winner;
-    }
-
-    // challenge (main)
-    function getNfts(
-        uint256 startNumber,
-        uint256 endNumber
-    ) external view returns (NftData[] memory data) {
-        {
-            uint256 limit = totalSupply();
-            if (endNumber > limit) endNumber = limit;
-        }
-
-        data = new NftData[](endNumber - startNumber);
-
-        for (uint256 i = startNumber; i < endNumber; ) {
-            uint256 tokenId = counterToTokenId[i];
-            Metadata memory meta = metas[tokenId];
-
-            NftData memory datum = NftData({
-                id: i,
-                name: meta.name,
-                description: meta.description,
-                gameType: meta.gameType,
-                imageUri: string(
-                    abi.encodePacked(_baseURI(), i.toString(), ".png")
-                ),
-                startDate: meta.start,
-                endDate: meta.end,
-                awards: IERC20(awardToken).balanceOf(address(uint160(tokenId))),
-                winner: meta.winner
-            });
-            data[i - startNumber] = datum;
-
-            unchecked {
-                ++i;
-            }
-        }
-    }
-
-    // leaderboard
-    function gameStatus()
-        external
-        view
-        returns (
-            uint256 totalChallanges,
-            uint256 ongoingChallanges,
-            uint256 solvedChallanges,
-            uint256 verifiedChallanges
-        )
-    {
-        return (totalSupply(), totalOngoing(), totalSolved(), totalVerified());
-    }
-
-    function getTopSolvers(
-        uint256 topk
-    )
-        external
-        view
-        returns (
-            address[] memory solvers,
-            uint256[] memory counts,
-            uint256[] memory awards
-        )
-    {
-        {
-            uint256 limit = solverList.length;
-            if (topk > limit) topk = limit;
-        }
-
-        solvers = new address[](topk);
-        counts = new uint256[](topk);
-        awards = new uint256[](topk);
-
-        // Temporary array to store the indices of top solvers
-        uint256[] memory topSolverIndices = new uint256[](topk);
-        for (uint256 i = 0; i < topk; i++) {
-            topSolverIndices[i] = i;
-        }
-
-        // Iterate through the remaining solvers to find the top solvers
-        for (uint256 i = topk; i < solverList.length; i++) {
-            // Find the current minimum award in the top solver list
-            uint256 minIndex = 0;
-            uint256 minAward = solvedAwards[
-                solverList[topSolverIndices[minIndex]]
-            ];
-
-            for (uint256 j = 1; j < topk; j++) {
-                if (solvedAwards[solverList[topSolverIndices[j]]] < minAward) {
-                    minAward = solvedAwards[solverList[topSolverIndices[j]]];
-                    minIndex = j;
-                }
-            }
-
-            // If the current solver has more awards than the minimum in the top list, replace it
-            if (solvedAwards[solverList[i]] > minAward) {
-                topSolverIndices[minIndex] = i;
-            }
-        }
-
-        for (uint256 i = 0; i < topk; i++) {
-            address _solver = solverList[topSolverIndices[i]];
-            solvers[i] = _solver;
-            counts[i] = solvedCounts[_solver];
-            awards[i] = solvedAwards[_solver];
-        }
-    }
-
-    // portfolio
-    function getPortfolioMaker(
-        address user
-    ) external view returns (NftData[] memory data) {
-        uint256 balance = balanceOf(user);
-        data = new NftData[](balance);
-
-        for (uint256 index = 0; index < balance; ) {
-            uint256 tokenId = tokenOfOwnerByIndex(user, index);
-            uint256 i = tokenIdToCounter[tokenId];
-            Metadata memory meta = metas[tokenId];
-
-            NftData memory datum = NftData({
-                id: i,
-                name: meta.name,
-                description: meta.description,
-                gameType: meta.gameType,
-                imageUri: string(
-                    abi.encodePacked(_baseURI(), i.toString(), ".png")
-                ),
-                startDate: meta.start,
-                endDate: meta.end,
-                awards: IERC20(awardToken).balanceOf(address(uint160(tokenId))),
-                winner: meta.winner
-            });
-            data[index] = datum;
-
-            unchecked {
-                ++index;
-            }
-        }
-    }
-
-    function getPortfolioSolver(
-        address user
-    ) external view returns (NftData[] memory data) {
-        uint256[] memory solvedGamesTokenIds = solvedGames[user];
-        uint256 solvedGamesCount = solvedGamesTokenIds.length;
-        data = new NftData[](solvedGamesCount);
-
-        for (uint256 s = 0; s < solvedGamesCount; ) {
-            uint256 tokenId = solvedGamesTokenIds[s];
-            uint256 i = tokenIdToCounter[tokenId];
-            Metadata memory meta = metas[tokenId];
-
-            NftData memory datum = NftData({
-                id: i,
-                name: meta.name,
-                description: meta.description,
-                gameType: meta.gameType,
-                imageUri: string(
-                    abi.encodePacked(_baseURI(), i.toString(), ".png")
-                ),
-                startDate: meta.start,
-                endDate: meta.end,
-                awards: IERC20(awardToken).balanceOf(address(uint160(tokenId))),
-                winner: meta.winner
-            });
-            data[s] = datum;
-
-            unchecked {
-                ++s;
-            }
-        }
     }
 }
