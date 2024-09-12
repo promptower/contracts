@@ -93,10 +93,10 @@ async function main() {
         }
     }
 
-    /* Get Maker */
+    /* Get Solver */
     {
         const maker = await gameContract.getPortfolioSolver(deployer.address);
-        console.log("Maker:", maker);
+        console.log("Solver:", maker);
     }
 }
 

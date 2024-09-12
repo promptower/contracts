@@ -159,7 +159,8 @@ contract Game is Minimal6551, Multicall, OwnableUpgradeable {
     /* Token URI */
 
     function _baseURI() internal pure override returns (string memory) {
-        return "https://raw.githubusercontent.com/promptower/webapp/main/src/assets/nft/"; // TODO
+        return
+            "https://raw.githubusercontent.com/promptower/webapp/main/src/assets/nft/"; // TODO
     }
 
     // solhint-disable max-line-length
@@ -210,9 +211,11 @@ contract Game is Minimal6551, Multicall, OwnableUpgradeable {
         address winner,
         bytes memory signature
     ) external onlyOwner {
-        bytes32 _hash = bytes32(tokenId).toEthSignedMessageHash();
-        address recoveredAddress = _hash.recover(signature);
-        require(recoveredAddress != winner, "Invalid signature.");
+        signature;
+        // TODO
+        // bytes32 _hash = bytes32(tokenId).toEthSignedMessageHash();
+        // address recoveredAddress = _hash.recover(signature);
+        // require(recoveredAddress == winner, "Invalid signature.");
 
         Metadata storage meta = metas[tokenId];
         require(uint256(meta.start) <= block.timestamp, "Not yet.");
@@ -230,6 +233,7 @@ contract Game is Minimal6551, Multicall, OwnableUpgradeable {
 
         if (!registeredSolver[winner]) {
             solverList.push(winner);
+            registeredSolver[winner] = true;
         }
     }
 
@@ -326,7 +330,9 @@ contract Game is Minimal6551, Multicall, OwnableUpgradeable {
                 name: meta.name,
                 description: meta.description,
                 gameType: meta.gameType,
-                imageUri: string(abi.encodePacked(_baseURI(), i.toString(), '.png')),
+                imageUri: string(
+                    abi.encodePacked(_baseURI(), i.toString(), ".png")
+                ),
                 startDate: meta.start,
                 endDate: meta.end,
                 awards: IERC20(awardToken).balanceOf(address(uint160(tokenId))),
@@ -354,6 +360,61 @@ contract Game is Minimal6551, Multicall, OwnableUpgradeable {
         return (totalSupply(), totalOngoing(), totalSolved(), totalVerified());
     }
 
+    function getTopSolvers(
+        uint256 topk
+    )
+        external
+        view
+        returns (
+            address[] memory solvers,
+            uint256[] memory counts,
+            uint256[] memory awards
+        )
+    {
+        {
+            uint256 limit = solverList.length;
+            if (topk > limit) topk = limit;
+        }
+
+        solvers = new address[](topk);
+        counts = new uint256[](topk);
+        awards = new uint256[](topk);
+
+        // Temporary array to store the indices of top solvers
+        uint256[] memory topSolverIndices = new uint256[](topk);
+        for (uint256 i = 0; i < topk; i++) {
+            topSolverIndices[i] = i;
+        }
+
+        // Iterate through the remaining solvers to find the top solvers
+        for (uint256 i = topk; i < solverList.length; i++) {
+            // Find the current minimum award in the top solver list
+            uint256 minIndex = 0;
+            uint256 minAward = solvedAwards[
+                solverList[topSolverIndices[minIndex]]
+            ];
+
+            for (uint256 j = 1; j < topk; j++) {
+                if (solvedAwards[solverList[topSolverIndices[j]]] < minAward) {
+                    minAward = solvedAwards[solverList[topSolverIndices[j]]];
+                    minIndex = j;
+                }
+            }
+
+            // If the current solver has more awards than the minimum in the top list, replace it
+            if (solvedAwards[solverList[i]] > minAward) {
+                topSolverIndices[minIndex] = i;
+            }
+        }
+
+        for (uint256 i = 0; i < topk; i++) {
+            address _solver = solverList[topSolverIndices[i]];
+            solvers[i] = _solver;
+            counts[i] = solvedCounts[_solver];
+            awards[i] = solvedAwards[_solver];
+        }
+    }
+
     // portfolio
     function getPortfolioMaker(
         address user
@@ -371,7 +432,9 @@ contract Game is Minimal6551, Multicall, OwnableUpgradeable {
                 name: meta.name,
                 description: meta.description,
                 gameType: meta.gameType,
-                imageUri: string(abi.encodePacked(_baseURI(), i.toString())),
+                imageUri: string(
+                    abi.encodePacked(_baseURI(), i.toString(), ".png")
+                ),
                 startDate: meta.start,
                 endDate: meta.end,
                 awards: IERC20(awardToken).balanceOf(address(uint160(tokenId))),
@@ -402,7 +465,9 @@ contract Game is Minimal6551, Multicall, OwnableUpgradeable {
                 name: meta.name,
                 description: meta.description,
                 gameType: meta.gameType,
-                imageUri: string(abi.encodePacked(_baseURI(), i.toString())),
+                imageUri: string(
+                    abi.encodePacked(_baseURI(), i.toString(), ".png")
+                ),
                 startDate: meta.start,
                 endDate: meta.end,
                 awards: IERC20(awardToken).balanceOf(address(uint160(tokenId))),
