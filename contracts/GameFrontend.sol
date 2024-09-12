@@ -16,6 +16,8 @@ struct NftData {
     string name;
     string description;
     string gameType;
+    bytes32 prompt;
+    bytes32 secret;
     string imageUri;
     uint128 startDate;
     uint128 endDate;
@@ -64,6 +66,8 @@ contract GameFrontend {
                 name: meta.name,
                 description: meta.description,
                 gameType: meta.gameType,
+                prompt: meta.prompt,
+                secret: meta.secret,
                 imageUri: string(
                     abi.encodePacked(_baseURI(), i.toString(), ".png")
                 ),
@@ -182,6 +186,8 @@ contract GameFrontend {
                 name: meta.name,
                 description: meta.description,
                 gameType: meta.gameType,
+                prompt: meta.prompt,
+                secret: meta.secret,
                 imageUri: string(
                     abi.encodePacked(_baseURI(), i.toString(), ".png")
                 ),
@@ -219,6 +225,8 @@ contract GameFrontend {
                 name: meta.name,
                 description: meta.description,
                 gameType: meta.gameType,
+                prompt: meta.prompt,
+                secret: meta.secret,
                 imageUri: string(
                     abi.encodePacked(_baseURI(), i.toString(), ".png")
                 ),

@@ -161,30 +161,38 @@ contract Game is Minimal6551, Multicall, OwnableUpgradeable, IGame {
 
         Metadata memory meta = _metas[tokenId];
 
-        string memory attributes = string(
-            abi.encodePacked(
-                "[",
-                '{"trait_type": "Type", "value": "',
-                meta.gameType,
-                '"},',
-                // '{"trait_type": "Prompt", "value": "',
-                // uint256(meta.prompt).toHexString(32),
-                // '"},',
-                // '{"trait_type": "Secret", "value": "',
-                // uint256(meta.secret).toHexString(32),
-                // '"},',
-                '{"display_type": "date", "trait_type": "Start date", "value": "',
-                uint256(meta.start).toString(),
-                '"},',
-                '{"display_type": "date", "trait_type": "End date", "value": "',
-                uint256(meta.end).toString(),
-                '"},',
-                '{"trait_type": "Winner address", "value": "',
-                meta.winner.toHexString(),
-                '"}',
-                "]"
-            )
-        );
+        string memory attributes;
+        {
+            string memory promptAndSecret = string(
+                abi.encodePacked(
+                    '{"trait_type": "Prompt", "value": "',
+                    uint256(meta.prompt).toHexString(32),
+                    '"},',
+                    '{"trait_type": "Secret", "value": "',
+                    uint256(meta.secret).toHexString(32),
+                    '"},'
+                )
+            );
+            attributes = string(
+                abi.encodePacked(
+                    "[",
+                    '{"trait_type": "Type", "value": "',
+                    meta.gameType,
+                    '"},',
+                    promptAndSecret,
+                    '{"display_type": "date", "trait_type": "Start date", "value": "',
+                    uint256(meta.start).toString(),
+                    '"},',
+                    '{"display_type": "date", "trait_type": "End date", "value": "',
+                    uint256(meta.end).toString(),
+                    '"},',
+                    '{"trait_type": "Winner address", "value": "',
+                    meta.winner.toHexString(),
+                    '"}',
+                    "]"
+                )
+            );
+        }
 
         return
             string(
