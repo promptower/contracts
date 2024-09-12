@@ -27,6 +27,8 @@ contract Game is Minimal6551, Multicall, OwnableUpgradeable, IGame {
     address public awardToken;
     mapping(uint256 tokenId => Metadata) private _metas;
 
+    mapping(address account => bool) public allowlist;
+
     // TODO: temp storage
     // enumerable bi-directional mapping
     mapping(uint256 counter => uint256 tokenId) public counterToTokenId;
@@ -57,17 +59,22 @@ contract Game is Minimal6551, Multicall, OwnableUpgradeable, IGame {
         __ERC721Enumerable_init_unchained();
         __Minimal6551_init_unchained();
         __Ownable_init_unchained(initialOwner_);
-        __Game_init_unchained(awardToken_);
+        __Game_init_unchained(initialOwner_, awardToken_);
     }
 
-    function __Game_init(address awardToken_) internal onlyInitializing {
-        __Game_init_unchained(awardToken_);
+    function __Game_init(
+        address initialOwner_,
+        address awardToken_
+    ) internal onlyInitializing {
+        __Game_init_unchained(initialOwner_, awardToken_);
     }
 
     function __Game_init_unchained(
+        address initialOwner_,
         address awardToken_
     ) internal onlyInitializing {
         awardToken = awardToken_;
+        allowlist[initialOwner_] = true; // addAllowlist
     }
 
     function _msgSender()
@@ -97,6 +104,13 @@ contract Game is Minimal6551, Multicall, OwnableUpgradeable, IGame {
         return 0;
     }
 
+    /* Modifiers */
+
+    modifier onlyAllowlist() {
+        require(allowlist[_msgSender()], "Not allowed.");
+        _;
+    }
+
     /* Functions */
 
     function mint(address to) external pure override returns (uint256 tokenId) {
@@ -119,7 +133,7 @@ contract Game is Minimal6551, Multicall, OwnableUpgradeable, IGame {
             /* awards */
             if (awards != 0) {
                 IERC20(awardToken).transferFrom(
-                    msg.sender,
+                    _msgSender(),
                     walletAddress,
                     awards
                 );
@@ -234,7 +248,7 @@ contract Game is Minimal6551, Multicall, OwnableUpgradeable, IGame {
         uint256 tokenId,
         address winner,
         bytes memory signature
-    ) external onlyOwner {
+    ) external onlyAllowlist {
         signature;
         // TODO
         // bytes32 _hash = bytes32(tokenId).toEthSignedMessageHash();
@@ -261,7 +275,10 @@ contract Game is Minimal6551, Multicall, OwnableUpgradeable, IGame {
         }
     }
 
-    function verified(uint256 tokenId, address nftAddress) external onlyOwner {
+    function verified(
+        uint256 tokenId,
+        address nftAddress
+    ) external onlyAllowlist {
         Metadata storage meta = _metas[tokenId];
 
         require(uint256(meta.start) <= block.timestamp, "Not yet.");
@@ -274,6 +291,16 @@ contract Game is Minimal6551, Multicall, OwnableUpgradeable, IGame {
 
         meta.winner = address(type(uint160).max);
         _totalVerified += 1;
+    }
+
+    /* Allowlist Functions */
+
+    function addAllowlist(address user) external onlyOwner {
+        allowlist[user] = true;
+    }
+
+    function delAllowlist(address user) external onlyOwner {
+        allowlist[user] = false;
     }
 
     /* View Storages */
