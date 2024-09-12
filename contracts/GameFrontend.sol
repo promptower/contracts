@@ -13,6 +13,7 @@ import "@openzeppelin/contracts/utils/Strings.sol";
 
 struct NftData {
     uint256 id;
+    uint256 tokenId;
     string name;
     string description;
     string gameType;
@@ -63,6 +64,7 @@ contract GameFrontend {
 
             NftData memory datum = NftData({
                 id: i,
+                tokenId: tokenId,
                 name: meta.name,
                 description: meta.description,
                 gameType: meta.gameType,
@@ -183,6 +185,7 @@ contract GameFrontend {
 
             NftData memory datum = NftData({
                 id: i,
+                tokenId: tokenId,
                 name: meta.name,
                 description: meta.description,
                 gameType: meta.gameType,
@@ -222,6 +225,7 @@ contract GameFrontend {
 
             NftData memory datum = NftData({
                 id: i,
+                tokenId: tokenId,
                 name: meta.name,
                 description: meta.description,
                 gameType: meta.gameType,

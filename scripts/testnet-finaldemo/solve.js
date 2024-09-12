@@ -6,10 +6,10 @@ async function main() {
 
     /* Settings */
 
-    const gameContract = await ethers.getContractAt("Game", "0xe3747D52B3d5c1DdAA00faa9C0012d00671BCF50");
-    const gameFrontendContract = await ethers.getContractAt("GameFrontend", "0x68F625EE5F2d85CD8e9dD4F3069a33b1764f8a7b");
-    const awardContract = await ethers.getContractAt("USDC", "0x0F989DD95481d7f0f130D4e3F519a37aD626fD7f");
-    const badgeContract = await ethers.getContractAt("Verified", "0xF16C65eB389650C212f817A9b901628ce9C5e790");
+    const gameContract = await ethers.getContractAt("Game", "0xed8924A1a185cF88222dC88C1C779C2587C88A71");
+    const gameFrontendContract = await ethers.getContractAt("GameFrontend", "0xA1D67424a5122d83831A14Fa5cB9764Aeb15CD99");
+    const awardContract = await ethers.getContractAt("USDC", "0xb20785130706a12105e46872358EF669F3cbc9C5");
+    const badgeContract = await ethers.getContractAt("Verified", "0x31aBaB70cA390f05ec5FB87fc044397f295Cd2bc");
 
     console.log("Game:", await gameContract.getAddress());
     console.log("GameFrontend:", await gameFrontendContract.getAddress());
@@ -30,7 +30,7 @@ async function main() {
         description: "A comprehensive AI solution for mapping global climate changes.",
         gameType: "secret",
         prompt: ethers.keccak256(ethers.toUtf8Bytes(prompt)),
-        secret: ethers.keccak256(ethers.toUtf8Bytes(secret)),
+        secret: ethers.keccak256(ethers.keccak256(ethers.toUtf8Bytes(secret))),
         start: _currentTime, // Current timestamp (start)
         end: _currentTime + 86400, // End timestamp (24 hours from now)
         winner: ethers.ZeroAddress,
@@ -47,10 +47,27 @@ async function main() {
     /* Case 1: Winner */
     {
         const tokenId = (await gameContract.tokenOfOwnerByIndex(deployer, salt)).toString();
-        console.log("tokenId:", tokenId);
+        const tokenIdHex = ethers.zeroPadValue("0x" + (await gameContract.tokenOfOwnerByIndex(deployer, salt)).toString(16), 32);
 
-        const sig = await deployer.signMessage(tokenId);
-        const txSolved = await gameContract.solved(tokenId, "0xA50249457438CA8f96F2a74199766151e966d447", sig);
+        const secretHash = ethers.keccak256(ethers.toUtf8Bytes(secret));
+        let sig;
+        {
+            const coder = ethers.AbiCoder.defaultAbiCoder();
+            const packedData = coder.encode(
+                [
+                    "bytes32",
+                    "bytes32",
+                ],
+                [
+                    tokenIdHex,
+                    secretHash
+                ]
+            );
+            sig = await deployer.signMessage(
+                ethers.getBytes(ethers.keccak256(packedData))
+            );
+        }
+        const txSolved = await gameContract.solved(tokenId, secretHash, deployer.address, sig);
         await txSolved.wait();
         console.log("solved tx:", txSolved.hash);
     }

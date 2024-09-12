@@ -57,6 +57,7 @@ interface IGame {
 
     function solved(
         uint256 tokenId,
+        bytes32 secretHash,
         address winner,
         bytes memory signature
     ) external;

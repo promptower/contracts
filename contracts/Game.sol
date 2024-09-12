@@ -246,16 +246,23 @@ contract Game is Minimal6551, Multicall, OwnableUpgradeable, IGame {
 
     function solved(
         uint256 tokenId,
+        bytes32 secretHash,
         address winner,
         bytes memory signature
     ) external onlyAllowlist {
-        signature;
-        // TODO
-        // bytes32 _hash = bytes32(tokenId).toEthSignedMessageHash();
-        // address recoveredAddress = _hash.recover(signature);
-        // require(recoveredAddress == winner, "Invalid signature.");
+        // signature;
+        // TODO: MEV
+        bytes32 _hash = keccak256(
+            abi.encodePacked((bytes32(tokenId)), (secretHash))
+        ).toEthSignedMessageHash();
+        require(_hash.recover(signature) == winner, "Invalid signature.");
 
         Metadata storage meta = _metas[tokenId];
+        require(
+            meta.secret == keccak256(abi.encodePacked(secretHash)),
+            "Invalid secretHash."
+        );
+
         require(uint256(meta.start) <= block.timestamp, "Not yet.");
         require(uint256(meta.end) >= block.timestamp, "Outdated.");
         require(meta.winner == address(0), "Already solved.");

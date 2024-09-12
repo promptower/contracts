@@ -3,6 +3,7 @@ const { ethers } = require("hardhat");
 async function main() {
     const [deployer] = await ethers.getSigners();
     console.log("Deployer:", deployer.address, await ethers.provider.getBalance(deployer.address));
+    // process.exit(1);
 
     /* Settings */
 
@@ -55,6 +56,10 @@ main().catch((error) => {
     process.exitCode = 1;
 });
 
-// Game: 0xcf7EC4BB7c0226FAF75cc81308D6361936b065f6
-// USDC: 0x41Db4368f74A18240deDB94BCc80dbED1E238c7B
-// Verified: 0x9e378EC114B2C35305A166e99feC5C47013188ec
+// Game: 0xB24a2fCEF85F0201C8c26A734677f0ceb4901866
+// GameFrontend: 0xCA1481483375B9563e6dF7646B50F8AC00D2b233
+// USDC: 0x49CABE91af53c01df296178c13EC5a0f824aea57
+// Verified: 0x5a050A10907184831A9Fa136e191b2C940Df6C7B
+
+// USDC mint: 0xc735997b5326a2d4a33daf6c008720020f581a88481a3c270de685b31b9b0118
+// USDC approve: 0x921858330a46b4422c8f3b73d3779972db103573913060aeb84dbf3d5688d5dc
