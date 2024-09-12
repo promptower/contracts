@@ -23,7 +23,7 @@ struct NftData {
     address winner;
 }
 
-contract GameView {
+contract GameFrontend {
     using Strings for uint256;
     using Strings for address;
 
